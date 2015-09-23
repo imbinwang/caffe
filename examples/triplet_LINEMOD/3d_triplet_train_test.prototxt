@@ -1,24 +1,59 @@
-name: "3d_triplet"
-input: "data"
-input_dim: 6480
-input_dim: 1
-input_dim: 64
-input_dim: 64
+name: "3d_triplet_train_test"
+layer {
+  name: "data"
+  type: "Data"
+  top: "data"
+  top: "sim"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    scale: 0.00390625
+  }
+  data_param {
+    source: "examples/triplet_LINEMOD/linemod_triplet_train_leveldb"
+    batch_size: 250
+  }
+}
+layer {
+  name: "data"
+  type: "Data"
+  top: "data"
+  top: "sim"
+  include {
+    phase: TEST
+  }
+  transform_param {
+    scale: 0.00390625
+  }
+  data_param {
+    source: "examples/triplet_LINEMOD/linemod_triplet_test_leveldb"
+    batch_size: 250
+  }
+}
 layer {
   name: "conv1"
   type: "Convolution"
   bottom: "data"
   top: "conv1"
   param {
+    name: "conv1_w"
     lr_mult: 1
   }
   param {
+    name: "conv1_b"
     lr_mult: 2
   }
   convolution_param {
     num_output: 16
     kernel_size: 9
     stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
   }
 }
 layer {
@@ -44,15 +79,23 @@ layer {
   bottom: "pool1"
   top: "conv2"
   param {
+    name: "conv2_w"
     lr_mult: 1
   }
   param {
+    name: "conv2_b"
     lr_mult: 2
   }
   convolution_param {
     num_output: 7
     kernel_size: 5
     stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
   }
 }
 layer {
@@ -78,13 +121,21 @@ layer {
   bottom: "pool2"
   top: "ip1"
   param {
+    name: "ip1_w"
     lr_mult: 1
   }
   param {
+    name: "ip1_b"
     lr_mult: 2
   }
   inner_product_param {
     num_output: 256
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
   }
 }
 layer {
@@ -99,12 +150,32 @@ layer {
   bottom: "ip1"
   top: "feat"
   param {
+    name: "feat_w"
     lr_mult: 1
   }
   param {
+    name: "feat_b"
     lr_mult: 2
   }
   inner_product_param {
     num_output: 16
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "loss"
+  type: "TripletLoss"
+  bottom: "feat"
+  bottom: "sim"
+  top: "loss"
+  triplet_loss_param {
+    margin: 0.01
+    losstype: 1
+    num_triplets: 3
   }
 }
