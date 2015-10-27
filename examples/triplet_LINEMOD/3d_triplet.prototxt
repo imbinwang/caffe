@@ -1,7 +1,7 @@
 name: "3d_triplet"
 input: "data"
-input_dim: 6480
 input_dim: 1
+input_dim: 3
 input_dim: 64
 input_dim: 64
 layer {
